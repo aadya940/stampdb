@@ -1,3 +1,5 @@
+### We are still in ideation phase and not in any way usable
+
 ### StampDB
 
 A database inspired by [Bitcask](https://github.com/basho/bitcask), built on top of [`numpy.memmap`](https://numpy.org/devdocs/reference/generated/numpy.memmap.html).
