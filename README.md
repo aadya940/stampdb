@@ -44,7 +44,7 @@ The index maintains an in-memory Python dictionary for fast lookups, persisted a
 
 ### Data Integrity
 
-Every data access triggers checksum verification using CRC32. Mismatched checksums raise warnings to alert of potential corruption. When data is updated at existing timestamps, the index points to the new location and orphaned files are automatically cleaned up by the StampDB daemon.
+Every data access triggers checksum verification using CRC32. Mismatched checksums raise warnings to alert of potential corruption. When data is updated at existing timestamps, the index points to the new location, checksum is updated and orphaned arrays are automatically cleaned up by the StampDB daemon clearing space in existing files and new data can be added there if it is smaller than 5MB and the new array can fit in.
 
 ## Query Interface
 
