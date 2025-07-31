@@ -58,7 +58,7 @@ If the last file is full, a new file is created.
 
 ### Query Language
 
-The query language are simple python functions.
+The query language are simple numpy functions.
 
 ```python
 from stampdb import StampDB, NOW
