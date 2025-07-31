@@ -1,6 +1,6 @@
 ### StampDB
 
-A database inspired by Bitcask, built on top of `numpy.memmap`.
+A database inspired by [Bitcask](https://github.com/basho/bitcask), built on top of [`numpy.memmap`](https://numpy.org/devdocs/reference/generated/numpy.memmap.html).
 Best suited for time series data.
 
 Written in Python but Fast.
