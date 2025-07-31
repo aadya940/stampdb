@@ -72,3 +72,9 @@ assert isinstance(result, np.ndarray)
 ```
 
 The query system returns numpy memory-mapped arrays containing all data points that satisfy the predicate function, maintaining consistent dimensions across results.
+
+
+### How's it different from SQL?
+
+Traditional SQL databases use B-trees because they need to support complex queries, joins, and range scans efficiently. But for time series data like Stocks, EEG etc., you're usually just writing new data points (arrays) and reading back ranges by timestamp (I think much simpler access patterns).
+StampDB uses a hash index (like Bitcask) which gives O(1) lookups by timestamp, plus the append-only log structure is perfect for time series since you're constantly writing new data chronologically. The memory-mapped files let you treat the data like it's in RAM even when it's on disk, which is great for numerical computations.
