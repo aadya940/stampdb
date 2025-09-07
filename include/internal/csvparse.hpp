@@ -10,6 +10,8 @@
 #include <csv2/reader.hpp>
 #include <csv2/writer.hpp>
 
+#include <ciso646>
+
 
 struct PointRow {
     std::variant<std::string, double, int, bool> data;
