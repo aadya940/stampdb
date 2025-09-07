@@ -27,4 +27,4 @@
 
 
 
-The Python API is in pre-development phase currently.
+The Python API is in Development phase currently.
