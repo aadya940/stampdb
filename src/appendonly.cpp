@@ -19,25 +19,19 @@ bool writeToCSV(const CSVData& csv, std::ofstream& file, NewAdded& newAdded) {
     if (!file.is_open()) {
         return false;
     }
-    
-    std::vector<std::vector<std::string>> rows;
 
-    for (const auto& index : newAdded.indices) {
-        if (index.index >= 0 && index.index < static_cast<int>(csv.points.size())) {
-            rows.push_back(pointToVector(csv.points.at(index.index)));
-        }
+    std::vector<std::vector<std::string>> rows;
+    for (const auto& point : csv.points) {
+        rows.push_back(pointToVector(point));
     }
 
     if (!rows.empty()) {
         csv2::Writer<csv2::delimiter<','>> writer(file);
         writer.write_rows(rows);
-        
-        // Clear the indices if everything was written successfully
-        newAdded.indices.clear();
-        return true;
+        return file.good();
     }
     
-    return false;
+    return true;  // No rows to write is not an error
 }
 
 // For deletions we would have to periodically rewrite the complete file and replace atomically.

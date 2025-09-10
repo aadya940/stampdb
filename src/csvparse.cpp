@@ -94,18 +94,20 @@ CSVData parseCSV(const std::string& filename, FullIndex& dbIndex) {
 
 
 CSVData appendRow(CSVData& csv, const Point& point, FullIndex& dbIndex, NewAdded& newAdded) {
+    // Store the current size as the index for the new point
+    int newIndex = static_cast<int>(csv.points.size());
     csv.points.push_back(point);
 
+    // Update indices
     Index thisIndex;
-    dbIndex.MAX_ROWNUM++;
-
-    // Fill up the current Index.
-    thisIndex.index = dbIndex.indices.size();
+    thisIndex.index = newIndex;
     thisIndex.time = point.time;
-
+    
+    // Add to newAdded for checkpointing
     newAdded.indices.push_back(thisIndex);
-
-    // Insert the new index in the correct position to maintain sorted order
+    
+    // Update the main index
+    dbIndex.MAX_ROWNUM++;
     insertIndexSorted(dbIndex, thisIndex);
 
     return csv;

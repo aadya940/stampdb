@@ -49,36 +49,45 @@ bool StampDB::checkpoint() {
         return true;  // Nothing to checkpoint
     }
     
-    // Ensure shadow file exists and is up to date
     if (!std::filesystem::exists(shadowFilename)) {
         if (!createShadowCopy(filename)) {
             throw std::runtime_error("Failed to create initial shadow copy");
         }
     }
     
-    std::cout << "Opening File in Append Mode ..." << std::endl;
     std::ofstream file = openFileInAppend(shadowFilename);
     if (!file.is_open()) {
         throw std::runtime_error("Failed to open shadow file for checkpointing");
     }
     
-    std::cout << "Writing to CSV ..." << std::endl;
-    bool success = writeToCSV(this->data, file, this->newAdded);
-    file.close();
+    // Create a temporary CSVData with just the new points
+    CSVData newPoints;
+    newPoints.headers = this->data.headers;
     
-    std::cout << "Closing File in Append Mode ..." << std::endl;
+    // Add all points from newAdded using their indices
+    for (const auto& idx : this->newAdded.indices) {
+        if (idx.index >= 0 && idx.index < static_cast<int>(this->data.points.size())) {
+            newPoints.points.push_back(this->data.points[idx.index]);
+        }
+    }
+    
+    bool success = writeToCSV(newPoints, file, this->newAdded);
+    file.close();
 
     if (!success) {
         throw std::runtime_error("Failed to write checkpoint data to shadow file");
     }
     
-    // Atomically swap the shadow file with the main database file
+    // Clear newAdded only after successful write
+    this->newAdded.indices.clear();
+    
     if (!swapShadowAsDb(this->filename)) {
         throw std::runtime_error("Failed to swap shadow file after checkpoint");
     }
     
     return true;
 }
+
 
 bool StampDB::appendPoint(const Point& point) {
     // Add the new point to our in-memory data
