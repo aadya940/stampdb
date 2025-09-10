@@ -28,6 +28,11 @@ CSVData StampDB::read_range(double startTime, double endTime) {
     
     auto range = findInTimeRange(this->dbIndex, startTime, endTime);
     for (const auto& idx : range) {
+        // Skip if index is out of bounds
+        if (idx.index < 0 || idx.index >= this->data.points.size()) {
+            std::cerr << "Warning: Invalid index " << idx.index << " for time " << idx.time << ". Skipping." << std::endl;
+            continue;
+        }
         result.points.push_back(this->data.points[idx.index]);
     }
     
@@ -37,10 +42,12 @@ CSVData StampDB::read_range(double startTime, double endTime) {
 CSVData StampDB::delete_point(double time) {
     // Find the exact time match
     auto range = findInTimeRange(this->dbIndex, time, time);
+    
     if (!range.empty()) {
         // Delete the point using the found index
         this->data = deletePointwithIndex(this->data, range[0].index, time, this->dbIndex, this->deletedIndices);
     }
+    
     return this->data;
 }
 
@@ -88,8 +95,22 @@ bool StampDB::checkpoint() {
     return true;
 }
 
+bool StampDB::updatePoint(const Point& point) {
+    // Find the exact time match
+    
+    // This will make this truly append only.
+    this->delete_point(point.time); // This will only delete if the point exists.
+    return this->appendPoint(point); // This will only append if the point does not exist.
+}
 
 bool StampDB::appendPoint(const Point& point) {
+    // If the point already exists, return false and suggest `update_point` instead
+    auto range = findInTimeRange(this->dbIndex, point.time, point.time);
+    if (!range.empty()) {
+        std::cout << "Warning: Point at time " << point.time << " already exists. Use `update_point` instead." << std::endl;
+        return false;
+    }
+
     // Add the new point to our in-memory data
     this->data = appendRow(this->data, point, this->dbIndex, this->newAdded);
     

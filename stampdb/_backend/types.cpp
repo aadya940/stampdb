@@ -144,6 +144,7 @@ PYBIND11_MODULE(_types, m) {
         .def("read_range", &StampDB::read_range, "Read data in time range")
         .def("delete_point", &StampDB::delete_point, "Delete point at specific time")
         .def("append_point", &StampDB::appendPoint, "Append a new point")
+        .def("update_point", &StampDB::updatePoint, "Update an existing point")
         
         // Database Management
         .def("compact", &StampDB::compact, "Compact the database")

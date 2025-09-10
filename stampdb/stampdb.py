@@ -12,11 +12,14 @@ class StampDB:
     time-based indexing and CRUD operations.
     """
 
-    def __init__(self, schema: dict, filename: str):
+    def __init__(self, filename: str, schema: dict = None):
         """Initialize StampDB with a CSV file.
 
         Args:
-            filename: Path to the CSV file to use as database storage.
+            filename: str
+                Path to the CSV file to use as database storage.
+            schema: Optional[dict]
+                Optional dictionary mapping column names to data types.
         """
         self.filename = filename
         self.schema = schema
@@ -24,6 +27,11 @@ class StampDB:
         self.headers = ["time"] + list(schema.keys())
 
         if not os.path.exists(filename):
+            if schema is None:
+                raise ValueError(
+                    "Schema must be provided if Database File does not exist."
+                )
+
             f = open(self.filename, "w")
             f.write(", ".join(self.headers))
             f.write("\n")
@@ -35,58 +43,75 @@ class StampDB:
         """Read data at a specific time.
 
         Args:
-            time: The time point to read data from.
+            time: float
+                The time point to read data from.
 
         Returns:
             NumPy structured array containing the data at the specified time.
         """
         csv_data = self._db.read(time)
-        
-        # Clean up the headers by stripping whitespace and newlines
-        if hasattr(csv_data, 'headers'):
-            csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
-            
+
+        csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
+
         return self._db.as_numpy_structured_array(csv_data)
 
     def read_range(self, start_time: float, end_time: float) -> np.ndarray:
         """Read data within a time range.
 
         Args:
-            start_time: Start of the time range (inclusive).
-            end_time: End of the time range (inclusive).
+            start_time: float
+                Start of the time range (inclusive).
+            end_time: float
+                End of the time range (inclusive).
 
         Returns:
             NumPy structured array containing all data points within the time range.
         """
         csv_data = self._db.read_range(start_time, end_time)
-        
+
         csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
-        
+
         return self._db.as_numpy_structured_array(csv_data)
 
     def delete_point(self, time: float) -> np.ndarray:
         """Delete a data point at the specified time.
 
         Args:
-            time: The time point to delete.
+            time: float
+                The time point to delete.
 
         Returns:
             NumPy structured array containing the deleted data (if any).
         """
         csv_data = self._db.delete_point(time)
-                    
+
+        csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
+
         return self._db.as_numpy_structured_array(csv_data)
 
     def append_point(self, point: Point) -> bool:
         """Append a new data point to the database.
 
         Args:
-            point: Point object to append.
+            point: Point
+                Point object to append.
 
         Returns:
             True if the point was successfully appended.
         """
         return self._db.append_point(point.point)
+
+    def update_point(self, point: Point) -> bool:
+        """Update an existing data point in the database.
+
+        Args:
+            point: Point
+                Point object to update.
+
+        Returns:
+            True if the point was successfully updated.
+        """
+        return self._db.update_point(point.point)
 
     def compact(self) -> np.ndarray:
         """Compact the database by removing deleted entries.
@@ -95,11 +120,9 @@ class StampDB:
             NumPy structured array containing all remaining data after compaction.
         """
         csv_data = self._db.compact()
-        
-        # Clean up the headers by stripping whitespace and newlines
-        if hasattr(csv_data, 'headers'):
-            csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
-            
+
+        csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
+
         return self._db.as_numpy_structured_array(csv_data)
 
     def checkpoint(self) -> bool:

@@ -11,22 +11,27 @@ public:
     explicit StampDB(const std::string& filename);
     ~StampDB() = default;
 
+
     // Disable copy/move for now
     StampDB(const StampDB&) = delete;
     StampDB& operator=(const StampDB&) = delete;
     StampDB(StampDB&&) = delete;
     StampDB& operator=(StampDB&&) = delete;
 
+
     // CRUD Operations
     CSVData read(double time);
     CSVData read_range(double startTime, double endTime);
     CSVData delete_point(double time);
     bool appendPoint(const Point& point);
+    bool updatePoint(const Point& point);
+    
     
     // Database Management
     CSVData compact();
     bool checkpoint();
     void close();
+
 
     // Configuration
     int CHECKPOINT = 10;  // Number of operations before auto-compaction

@@ -101,13 +101,14 @@ CSVData appendRow(CSVData& csv, const Point& point, FullIndex& dbIndex, NewAdded
     Index thisIndex;
     thisIndex.index = newIndex;
     thisIndex.time = point.time;
-    
-    // Add to newAdded for checkpointing
-    newAdded.indices.push_back(thisIndex);
-    
+        
     // Update the main index
     dbIndex.MAX_ROWNUM++;
     insertIndexSorted(dbIndex, thisIndex);
+
+    // Add to newAdded for checkpointing
+    newAdded.indices.push_back(thisIndex);
+
 
     return csv;
 }
@@ -177,26 +178,34 @@ void printCSVData(const CSVData& data) {
 
 
 CSVData deletePointwithIndex(CSVData& data, int index, double time, FullIndex& dbIndex, DeletedIndices& deletedIndices) {
-    
     if (index >= 0 && index < data.points.size()) {
-        // Remove the point from the data
-        data.points.erase(data.points.begin() + index);
-
         // Record this deletion in the global deletedIndices
         Index thisDeletedIndex;
         thisDeletedIndex.index = index;
         thisDeletedIndex.time = time;
         deletedIndices.indices.push_back(thisDeletedIndex);
 
-        // Update the global FullIndex
-        dbIndex.MAX_ROWNUM--;
-        dbIndex.indices.erase(dbIndex.indices.begin() + index);
+        // Remove the point from the data
+        data.points.erase(data.points.begin() + index);
 
-        // Adjust indices greater than the deleted one
+        // Find and remove the corresponding index from dbIndex
+        auto it = std::find_if(dbIndex.indices.begin(), dbIndex.indices.end(),
+            [index](const Index& idx) { return idx.index == index; });
+            
+        if (it != dbIndex.indices.end()) {
+            dbIndex.indices.erase(it);
+        }
+
+        // Adjust indices in dbIndex that are greater than the deleted one
         for (auto& idx : dbIndex.indices) {
             if (idx.index > index) {
                 idx.index--;
             }
+        }
+
+        // Update MAX_ROWNUM if needed
+        if (dbIndex.MAX_ROWNUM > 0) {
+            dbIndex.MAX_ROWNUM--;
         }
     }
 
