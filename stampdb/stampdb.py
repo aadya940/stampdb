@@ -1,6 +1,5 @@
 from .point import Point
 from . import _backend
-from ._backend import CSVData
 
 import numpy as np
 import os
@@ -62,9 +61,6 @@ class StampDB:
         csv_data = self._db.read_range(start_time, end_time)
         
         csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
-        
-        print(csv_data.headers)
-        print(csv_data.points)
         
         return self._db.as_numpy_structured_array(csv_data)
 

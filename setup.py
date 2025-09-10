@@ -44,4 +44,5 @@ setup(
     packages=["stampdb"],
     package_dir={"": "."},
     cmdclass={"build_ext": CustomBuildExt},
+    install_requires=open("requirements.txt").read().splitlines(),
 )
