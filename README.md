@@ -25,7 +25,11 @@
 - ACID guarantees
 - High performance as the size of your dataset grows
 
-
-
-
 The Python API is in Development phase currently.
+
+### Use Cases
+
+- IOT and Sensor Data
+- Scientific and Research Data Acquisition
+- Single Node Data Processing
+- Private Data Storage
