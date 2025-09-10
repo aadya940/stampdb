@@ -9,6 +9,7 @@
 -  In-Memory Indexing for fast lookups.
 -  Append-Only Writes for data integrity.
 -  Simple and fast Range Queries.
+-  Atmoic Writes.
 
 ### Python Frontend
 -  Seamless conversion from C++ CSV objects to NumPy structured arrays.
