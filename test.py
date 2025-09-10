@@ -1,4 +1,4 @@
-from stampdb import StampDB, Point  # Replace with your actual module name
+from stampdb import StampDB, Point  
 
 def main():
     # Use the database
