@@ -2,6 +2,7 @@ from setuptools import setup, Extension
 import pybind11
 import os
 from setuptools.command.build_ext import build_ext
+import numpy as np
 
 
 class CustomBuildExt(build_ext):
@@ -19,7 +20,6 @@ extension = Extension(
         "stampdb/_backend/types.cpp",
         "src/csvparse.cpp",
         "src/appendonly.cpp",
-        "src/atomicity.cpp",
         "src/algorithms.cpp",
         "src/fileio.cpp",
         "src/stampdb.cpp",
@@ -30,6 +30,8 @@ extension = Extension(
         "libs/csv2/include",
         pybind11.get_include(),
         os.path.join(pybind11.get_include(), "pybind11"),
+        os.path.join(pybind11.get_include(), "numpy"),
+        np.get_include(),
     ],
     language="c++",
     extra_compile_args=["/std:c++20"] if os.name == "nt" else ["-std=c++20"],

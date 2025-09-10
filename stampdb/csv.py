@@ -1,9 +1,7 @@
 from typing import List
 from .point import Point
 
-from . import _backend
-from ._backend._types import CSVData
-
+from . import _backend        
 
 class CSV:
     """A CSV file with a list of points."""

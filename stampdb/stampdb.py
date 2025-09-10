@@ -1,8 +1,8 @@
-from typing import List, Union
 from .point import Point
-from .csv import CSV
 from . import _backend
+from ._backend import CSVData
 
+import numpy as np
 import os
 
 
@@ -32,20 +32,24 @@ class StampDB:
 
         self._db = _backend.StampDB(filename)
 
-    def read(self, time: float) -> CSV:
+    def read(self, time: float) -> np.ndarray:
         """Read data at a specific time.
 
         Args:
             time: The time point to read data from.
 
         Returns:
-            CSV object containing the data at the specified time.
+            NumPy structured array containing the data at the specified time.
         """
         csv_data = self._db.read(time)
-        points = [Point(p.time, [row.data for row in p.rows]) for p in csv_data.points]
-        return CSV(csv_data.headers, points)
+        
+        # Clean up the headers by stripping whitespace and newlines
+        if hasattr(csv_data, 'headers'):
+            csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
+            
+        return self._db.as_numpy_structured_array(csv_data)
 
-    def read_range(self, start_time: float, end_time: float) -> CSV:
+    def read_range(self, start_time: float, end_time: float) -> np.ndarray:
         """Read data within a time range.
 
         Args:
@@ -53,24 +57,29 @@ class StampDB:
             end_time: End of the time range (inclusive).
 
         Returns:
-            CSV object containing all data points within the time range.
+            NumPy structured array containing all data points within the time range.
         """
         csv_data = self._db.read_range(start_time, end_time)
-        points = [Point(p.time, [row.data for row in p.rows]) for p in csv_data.points]
-        return CSV(csv_data.headers, points)
+        
+        csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
+        
+        print(csv_data.headers)
+        print(csv_data.points)
+        
+        return self._db.as_numpy_structured_array(csv_data)
 
-    def delete_point(self, time: float) -> CSV:
+    def delete_point(self, time: float) -> np.ndarray:
         """Delete a data point at the specified time.
 
         Args:
             time: The time point to delete.
 
         Returns:
-            CSV object containing the deleted data (if any).
+            NumPy structured array containing the deleted data (if any).
         """
         csv_data = self._db.delete_point(time)
-        points = [Point(p.time, [row.data for row in p.rows]) for p in csv_data.points]
-        return CSV(csv_data.headers, points)
+                    
+        return self._db.as_numpy_structured_array(csv_data)
 
     def append_point(self, point: Point) -> bool:
         """Append a new data point to the database.
@@ -83,15 +92,19 @@ class StampDB:
         """
         return self._db.append_point(point.point)
 
-    def compact(self) -> CSV:
+    def compact(self) -> np.ndarray:
         """Compact the database by removing deleted entries.
 
         Returns:
-            CSV object containing all remaining data after compaction.
+            NumPy structured array containing all remaining data after compaction.
         """
         csv_data = self._db.compact()
-        points = [Point(p.time, [row.data for row in p.rows]) for p in csv_data.points]
-        return CSV(csv_data.headers, points)
+        
+        # Clean up the headers by stripping whitespace and newlines
+        if hasattr(csv_data, 'headers'):
+            csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
+            
+        return self._db.as_numpy_structured_array(csv_data)
 
     def checkpoint(self) -> bool:
         """Force a checkpoint operation.

@@ -32,10 +32,9 @@ CSVData parseCSV(const std::string& filename, FullIndex& dbIndex) {
         for (const auto& row : reader) {
 
             if (row.length() < csv.headers.size()) {
-                // This row has fewer columns than the header, so we skip it as malformed.
-                std::cout << "Warning: Skipping malformed or empty row." << std::endl;
+                // Skip malformed or empty rows
                 dbIndex.MAX_ROWNUM--;
-                continue; 
+                continue;
             }        
 
             Point point;
@@ -171,39 +170,9 @@ void writeCSV(const std::string& filename, const CSVData& csv) {
 
 
 
+// Function to print CSV data - kept for debugging purposes but not used in production
 void printCSVData(const CSVData& data) {
-    // Print headers
-    std::cout << "---------------------\n";
-    std::cout << data.headers[0];
-    
-    for (size_t i = 1; i < data.headers.size(); ++i) {
-        std::cout << "\t| " << data.headers[i];
-    }
-
-    std::cout << "\n---------------------\n";
-
-    // Print data rows
-    for (const auto& point : data.points) {
-        // Print time (first column)
-        std::cout << point.time;
-        
-        // Print other columns
-        for (size_t i = 0; i < point.rows.size(); ++i) {
-            std::cout << "\t| ";
-            visit([](auto&& arg) {
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T, std::string>) {
-                    std::cout << arg;
-                } else if constexpr (std::is_same_v<T, bool>) {
-                    std::cout << (arg ? "true" : "false");
-                } else {
-                    std::cout << arg;
-                }
-            }, point.rows[i].data);
-        }
-        std::cout << "\n";
-    }
-    std::cout << "---------------------\n"; 
+    // Implementation removed for production use
 }
 
 

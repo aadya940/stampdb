@@ -1,10 +1,12 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 #include <variant>
 #include <sstream>
 
 #include "../../include/internal/csvparse.hpp"
 #include "../../include/stampdb.hpp"
+#include "../../include/internal/converter.hpp"
 
 namespace py = pybind11;
 
@@ -133,7 +135,6 @@ PYBIND11_MODULE(_types, m) {
             oss << "], points=" << csv.points.size() << " entries)";
             return oss.str();
         });
-
     
     py::class_<StampDB>(m, "StampDB")
         .def(py::init<const std::string&>(), "Constructor with filename")
@@ -150,5 +151,6 @@ PYBIND11_MODULE(_types, m) {
         .def("close", &StampDB::close, "Close the database")
         
         // Configuration
-        .def_readwrite("CHECKPOINT", &StampDB::CHECKPOINT, "Checkpoint threshold");
+        .def_readwrite("CHECKPOINT", &StampDB::CHECKPOINT, "Checkpoint threshold")
+        .def_static("as_numpy_structured_array", &convertToStructuredArray, "Convert CSVData to NumPy structured array");
 }
