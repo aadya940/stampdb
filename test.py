@@ -15,13 +15,13 @@ def main():
         points = [
             Point(1.0, [23.5, 45.2]),
             Point(2.0, [24.1, 46.8]),
-            Point(3.0, [25.7, 48.3])
+            Point(3.0, [25.7, 48.3]),
         ]
         for point in points:
             db.append_point(point)
 
         db.checkpoint()
-        
+
         data = db.read_range(0.0, 10.0)
         print(data)
 

@@ -1,21 +1,10 @@
-from setuptools import setup, Extension
+from setuptools import find_packages, setup, Extension
 import pybind11
 import os
-from setuptools.command.build_ext import build_ext
 import numpy as np
 
-
-class CustomBuildExt(build_ext):
-    def build_extension(self, ext):
-        # Set a custom output directory for the extension
-        build_lib = os.path.join("stampdb", "_backend")
-        os.makedirs(build_lib, exist_ok=True)
-        self.build_lib = build_lib
-        super().build_extension(ext)
-
-
 extension = Extension(
-    "_types",
+    "stampdb._backend._types",
     sources=[
         "stampdb/_backend/types.cpp",
         "src/csvparse.cpp",
@@ -37,12 +26,23 @@ extension = Extension(
     extra_compile_args=["/std:c++20"] if os.name == "nt" else ["-std=c++20"],
 )
 
+
+def read_requirements():
+    try:
+        with open("requirements.txt", "r", encoding="utf-8") as f:
+            return f.read().splitlines()
+    except FileNotFoundError:
+        return []
+
+
 setup(
     name="stampdb",
     version="0.1.0",
+    description="A tiny C++ Time Series Database library designed for compatibility with the PyData Ecosystem.",
+    author="Aadya A. Chinubhai",
     ext_modules=[extension],
-    packages=["stampdb"],
+    packages=find_packages(),
     package_dir={"": "."},
-    cmdclass={"build_ext": CustomBuildExt},
-    install_requires=open("requirements.txt").read().splitlines(),
+    install_requires=read_requirements(),
+    zip_safe=False,
 )
