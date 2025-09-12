@@ -1,5 +1,7 @@
 # StampDB
 
+<img src="logo.jpg" alt="drawing" width="200" height="200" />
+
 **StampDB** is a performant time series database inspired by [tinyflux](https://github.com/citrusvanilla/tinyflux), with a focus on maximizing compatibility with the PyData ecosystem.
 It is designed to work natively with NumPy and Pythons datetime module.
 
