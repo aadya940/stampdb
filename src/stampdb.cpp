@@ -1,6 +1,5 @@
 #include "../include/stampdb.hpp"
 
-
 StampDB::StampDB(const std::string& filename) : filename(filename), shadowFilename(filename + ".tmp"), operationCount(0) {
     // Load data using existing parseCSV function and initialize index
     this->data = parseCSV(filename, this->dbIndex);
@@ -160,4 +159,9 @@ void StampDB::close() {
     this->dbIndex.MAX_ROWNUM = 0;
     this->newAdded.indices.clear();
     this->deletedIndices.indices.clear();
+    
+    // Clean up the temporary file if it exists
+    if (std::filesystem::exists(shadowFilename)) {
+        std::filesystem::remove(shadowFilename);
+    }
 }

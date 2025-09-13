@@ -1,5 +1,6 @@
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
+#include <Python.h>
 
 #ifdef _MSC_VER
     #include <BaseTsd.h>
@@ -15,12 +16,10 @@ py::array convertToStructuredArray(const CSVData& csv) {
     const auto& points = csv.points;
 
     if (points.empty()) {
-        throw std::runtime_error("CSV data is empty.");
+        return py::array();
     }
 
     size_t num_rows = points.size();
-    size_t num_cols = headers.size();
-    
     const auto& first_point = points[0];
     std::vector<std::pair<std::string, py::dtype>> fields;
 
@@ -30,9 +29,8 @@ py::array convertToStructuredArray(const CSVData& csv) {
     // Create fields for the rest of the columns based on the data types
     for (size_t i = 0; i < first_point.rows.size(); ++i) {
         const auto& variant = first_point.rows[i].data;
-        
-        // Note: i+1 because headers[0] is time, headers[i+1] corresponds to rows[i]
         size_t header_idx = i + 1;
+        
         if (header_idx >= headers.size()) {
             throw std::runtime_error("Mismatch between headers and data columns");
         }
@@ -42,7 +40,8 @@ py::array convertToStructuredArray(const CSVData& csv) {
         } else if (std::holds_alternative<double>(variant)) {
             fields.emplace_back(headers[header_idx], py::dtype::of<double>());
         } else if (std::holds_alternative<std::string>(variant)) {
-            fields.emplace_back(headers[header_idx], py::dtype("U64")); // Fixed string length
+            // Use object dtype for strings to avoid encoding issues
+            fields.emplace_back(headers[header_idx], py::dtype::of<py::object>());
         } else if (std::holds_alternative<bool>(variant)) {
             fields.emplace_back(headers[header_idx], py::dtype::of<bool>());
         } else {
@@ -50,7 +49,7 @@ py::array convertToStructuredArray(const CSVData& csv) {
         }
     }
 
-    // Create the structured dtype
+    // Create the structured dtype and array
     py::list field_list;
     for (const auto& [name, dt] : fields) {
         field_list.append(py::make_tuple(name, dt));
@@ -61,41 +60,41 @@ py::array convertToStructuredArray(const CSVData& csv) {
     py::array result(dtype, shape);
     char* base_ptr = static_cast<char*>(result.mutable_data());
 
-    // Calculate offsets properly
+    // Calculate field offsets
     std::vector<ssize_t> offsets;
     ssize_t offset = 0;
-    for (const auto& [name, dt] : fields) {
+    for (const auto& field : fields) {
         offsets.push_back(offset);
-        offset += dt.itemsize();
+        offset += field.second.itemsize();
     }
 
     // Populate the array
     for (size_t row = 0; row < num_rows; ++row) {
         const auto& point = points[row];
-        const auto& row_data = point.rows;
         char* row_ptr = base_ptr + row * dtype.itemsize();
 
         // Set the time field (first field)
         *reinterpret_cast<double*>(row_ptr + offsets[0]) = point.time;
 
         // Set the remaining fields
-        for (size_t col = 0; col < row_data.size() && col + 1 < fields.size(); ++col) {
+        size_t point_rows_size = point.rows.size();
+        size_t fields_size_minus_one = fields.size() - 1;
+        size_t max_cols = (point_rows_size < fields_size_minus_one) ? point_rows_size : fields_size_minus_one;
+        for (size_t col = 0; col < max_cols; ++col) {
             char* field_ptr = row_ptr + offsets[col + 1];
-            const auto& variant = row_data[col].data;
+            const auto& variant = point.rows[col].data;
 
             if (std::holds_alternative<int>(variant)) {
                 *reinterpret_cast<int32_t*>(field_ptr) = std::get<int>(variant);
             } else if (std::holds_alternative<double>(variant)) {
                 *reinterpret_cast<double*>(field_ptr) = std::get<double>(variant);
             } else if (std::holds_alternative<std::string>(variant)) {
-                std::string str = std::get<std::string>(variant);
-                // Ensure string fits in the allocated space (64 chars)
-                if (str.length() >= 64) {
-                    str = str.substr(0, 63); // Leave room for null terminator
-                }
-                std::memcpy(field_ptr, str.c_str(), str.length() + 1);
-                // Pad remaining space with zeros
-                std::memset(field_ptr + str.length() + 1, 0, 64 - str.length() - 1);
+                const std::string& str = std::get<std::string>(variant);
+                // Create a Python string object and store its reference
+                py::str py_str(str);
+                PyObject* str_obj = py_str.release().ptr();
+                Py_INCREF(str_obj); // Increment reference count
+                *reinterpret_cast<PyObject**>(field_ptr) = str_obj;
             } else if (std::holds_alternative<bool>(variant)) {
                 *reinterpret_cast<bool*>(field_ptr) = std::get<bool>(variant);
             }
