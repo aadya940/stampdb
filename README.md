@@ -140,6 +140,4 @@ assert loj.do().size > 0
 
 db.close()
 db2.close()
-os.remove("test.csv")
-os.remove("test2.csv")
 ```
