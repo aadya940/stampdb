@@ -3,8 +3,11 @@ from . import _backend
 
 import numpy as np
 import os
+from datetime import datetime, timezone
+from typing import Union, Tuple
 
 from .schema import SchemaValidation
+
 
 class StampDB:
     """Python wrapper for the StampDB C++ class.
@@ -30,7 +33,9 @@ class StampDB:
         if os.path.exists(self.schema_file):
             self.schema = SchemaValidation(schema=None, filename=self.schema_file)
         else:
-            self.schema = SchemaValidation(schema=self.schema, filename=self.schema_file)
+            self.schema = SchemaValidation(
+                schema=self.schema, filename=self.schema_file
+            )
 
         self.headers = ["time"] + list(schema.keys())
 
@@ -47,51 +52,72 @@ class StampDB:
 
         self._db = _backend.StampDB(filename)
 
-    def read(self, time: float) -> np.ndarray:
+    def _convert_to_timestamp(self, time: Union[float, datetime]) -> float:
+        """Convert datetime object to timestamp if needed.
+
+        Args:
+            time: Either a float timestamp or datetime object
+
+        Returns:
+            float: Timestamp in seconds since epoch
+        """
+        if isinstance(time, datetime):
+            if time.tzinfo is None:
+                time = time.replace(tzinfo=timezone.utc)
+            return time.timestamp()
+        return time
+
+    def read(self, time: Union[float, datetime]) -> np.ndarray:
         """Read data at a specific time.
 
         Args:
-            time: float
-                The time point to read data from.
+            time: Union[float, datetime]
+                The time point to read data from. Can be a Unix timestamp (float) or datetime object.
 
         Returns:
             NumPy structured array containing the data at the specified time.
         """
-        csv_data = self._db.read(time)
+        timestamp = self._convert_to_timestamp(time)
+        csv_data = self._db.read(timestamp)
 
         csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
 
         return self._db.as_numpy_structured_array(csv_data)
 
-    def read_range(self, start_time: float, end_time: float) -> np.ndarray:
+    def read_range(
+        self, start_time: Union[float, datetime], end_time: Union[float, datetime]
+    ) -> np.ndarray:
         """Read data within a time range.
 
         Args:
-            start_time: float
-                Start of the time range (inclusive).
-            end_time: float
-                End of the time range (inclusive).
+            start_time: Union[float, datetime]
+                Start of the time range (inclusive). Can be Unix timestamp or datetime object.
+            end_time: Union[float, datetime]
+                End of the time range (inclusive). Can be Unix timestamp or datetime object.
 
         Returns:
             NumPy structured array containing all data points within the time range.
         """
-        csv_data = self._db.read_range(start_time, end_time)
+        start = self._convert_to_timestamp(start_time)
+        end = self._convert_to_timestamp(end_time)
+        csv_data = self._db.read_range(start, end)
 
         csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
 
         return self._db.as_numpy_structured_array(csv_data)
 
-    def delete_point(self, time: float) -> np.ndarray:
+    def delete_point(self, time: Union[float, datetime]) -> np.ndarray:
         """Delete a data point at the specified time.
 
         Args:
-            time: float
-                The time point to delete.
+            time: Union[float, datetime]
+                The time point to delete. Can be Unix timestamp or datetime object.
 
         Returns:
             NumPy structured array containing the deleted data (if any).
         """
-        csv_data = self._db.delete_point(time)
+        timestamp = self._convert_to_timestamp(time)
+        csv_data = self._db.delete_point(timestamp)
 
         csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
 
@@ -130,10 +156,32 @@ class StampDB:
             NumPy structured array containing all remaining data after compaction.
         """
         csv_data = self._db.compact()
-
         csv_data.headers = [h.strip() for h in csv_data.headers if h.strip()]
-
         return self._db.as_numpy_structured_array(csv_data)
+
+    def get_timestamps(self) -> Tuple[datetime, datetime]:
+        """Get the first and last timestamps in the database.
+
+        Returns:
+            Tuple[datetime, datetime]: (first_timestamp, last_timestamp) as datetime objects
+
+        Raises:
+            ValueError: If the database is empty
+        """
+        # Read a small range to check if database has any data
+        data = self.read_range(0, float("inf"))
+        if len(data) == 0:
+            raise ValueError("Database is empty")
+
+        # Get the first and last timestamps
+        first_ts = data[0]["time"]
+        last_ts = data[-1]["time"]
+
+        # Convert timestamps to datetime objects
+        return (
+            datetime.fromtimestamp(first_ts, tz=timezone.utc),
+            datetime.fromtimestamp(last_ts, tz=timezone.utc),
+        )
 
     def checkpoint(self) -> bool:
         """Force a checkpoint operation.

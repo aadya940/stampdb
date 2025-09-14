@@ -23,6 +23,7 @@ class _BaseJoin:
             r2=self.right,
             jointype=jointype,
             usemask=False,
+            asrecarray=False,
         )
 
 

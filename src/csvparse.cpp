@@ -44,9 +44,23 @@ CSVData parseCSV(const std::string& filename, FullIndex& dbIndex) {
             thisIndex.index = iter;
             iter++;
 
+            bool is_last_cell = false;
+            size_t cell_count = 0;
+            size_t total_cells = csv.headers.size();
+            
             for (const auto& cell : row) {
                 std::string value;
                 cell.read_value(value);
+                
+                cell_count++;
+                is_last_cell = (cell_count == total_cells);
+
+                #ifdef _WIN32
+                    // Remove trailing '\r' only from the last cell on Windows
+                    if (is_last_cell && !value.empty() && value.back() == '\r') {
+                        value.pop_back();
+                    }
+                #endif
 
                 if (first) {
                     // treat first col as time
