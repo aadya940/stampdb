@@ -1,0 +1,13 @@
+include LICENSE
+include README.md
+include requirements.txt
+
+recursive-include stampdb *.py *.pxd *.pyx *.hpp *.h *.c *.cpp
+recursive-include include *.hpp *.h
+recursive-include libs *.hpp *.h
+
+prune build
+prune dist
+prune .git
+prune __pycache__
+prune *.egg-info

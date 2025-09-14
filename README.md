@@ -41,10 +41,17 @@ The Python API is in Development phase currently.
 - Private Data Storage
 
 ## Installation
+Clone the repository.
+
 ```
-pip install -r requirements.txt
-python setup.py build_ext --inplace
-pip install .
+git clone --recursive https://github.com/you/stampdb.git
+# If csv2 C++ library is not cloned, you might have to explicitly clone it at `libs/csv2`.
+```
+
+Build the Python API.
+
+```
+python -m build
 ```
 
 ## Quick Start

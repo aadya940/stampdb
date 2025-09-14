@@ -42,7 +42,6 @@ setup(
     author="Aadya A. Chinubhai",
     ext_modules=[extension],
     packages=find_packages(),
-    package_dir={"": "."},
     install_requires=read_requirements(),
     zip_safe=False,
 )
