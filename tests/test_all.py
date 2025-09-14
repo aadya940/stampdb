@@ -2,10 +2,14 @@ import sys
 import os
 import random
 import numpy as np
+import json
+import tempfile
+import pytest
 
 sys.path.append("../")
 
 from stampdb import StampDB, Point
+from stampdb.schema import SchemaValidation
 from stampdb.relational import (
     Summation,
     Projection,
@@ -20,7 +24,7 @@ from stampdb.relational import (
 
 
 def test_db():
-    db = StampDB("test.csv", schema={"temp": "float", "humidity": "float"})
+    db = StampDB("test.csv", schema={"temp": "float", "humidity": "string"})
     assert os.path.exists("test.csv") and os.path.getsize("test.csv") > 0
     assert os.path.exists("test.csv.tmp") and os.path.getsize("test.csv.tmp") > 0
 
@@ -59,7 +63,7 @@ def test_points():
 
 
 def test_checkpoint():
-    db = StampDB("test.csv", schema={"temp": "float", "humidity": "float"})
+    db = StampDB("test.csv", schema={"temp": "float", "humidity": "string"})
 
     db.checkpoint_threshold = 1
     p1 = Point(time=0, data=[23.5, "moderate"])
@@ -74,7 +78,7 @@ def test_checkpoint():
 
 
 def test_delete():
-    db = StampDB("test.csv", schema={"temp": "float", "humidity": "float"})
+    db = StampDB("test.csv", schema={"temp": "float", "humidity": "string"})
     p1 = Point(time=0, data=[23.5, "moderate"])
 
     db.append_point(p1)
@@ -93,7 +97,7 @@ def test_delete():
 
 
 def test_relational():
-    db = StampDB("test.csv", schema={"temp": "float", "humidity": "float"})
+    db = StampDB("test.csv", schema={"temp": "float", "humidity": "string"})
     p1 = Point(time=0, data=[23.5, "moderate"])
     p2 = Point(time=1, data=[24.5, "high"])
     db.append_point(p1)
@@ -121,7 +125,7 @@ def test_relational():
 
 
 def test_joins():
-    db = StampDB("test.csv", schema={"temp": "float", "humidity": "float"})
+    db = StampDB("test.csv", schema={"temp": "float", "humidity": "string"})
     for i in range(100):
         time = i
         temp = random.randint(0, 50)
@@ -159,3 +163,38 @@ def test_joins():
     db2.close()
     os.remove("test.csv")
     os.remove("test2.csv")
+    os.remove("test.csv.schema")
+    os.remove("test2.csv.schema")
+
+
+def test_schema_with_stampdb():
+    # Test schema validation through StampDB
+    schema = {"temperature": "float", "status": "string", "active": "bool"}
+    
+    # Test valid data
+    db = StampDB("test_schema.csv", schema=schema)
+    valid_point = Point(time=0, data=[23.5, "online", True])
+    assert db.append_point(valid_point) is True
+    
+    # Test invalid data
+    invalid_point = Point(time=1, data=["not a float", "online", True])
+    with pytest.raises(ValueError):
+        db.append_point(invalid_point)
+    
+    # Verify only valid point was added
+    data = db.read_range(0, 10)
+    assert len(data) == 1
+    assert data["temperature"][0] == 23.5
+    
+    # Test update with valid data
+    updated_point = Point(time=0, data=[25.0, "online", False])
+    assert db.update_point(updated_point) is True
+    
+    # Test update with invalid data
+    invalid_update = Point(time=0, data=[25.0, 123, False])
+    with pytest.raises(ValueError):
+        db.update_point(invalid_update)
+    
+    db.close()
+    os.remove("test_schema.csv")
+    os.remove("test_schema.csv.schema")

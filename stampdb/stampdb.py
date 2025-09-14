@@ -4,6 +4,7 @@ from . import _backend
 import numpy as np
 import os
 
+from .schema import SchemaValidation
 
 class StampDB:
     """Python wrapper for the StampDB C++ class.
@@ -22,7 +23,14 @@ class StampDB:
                 Optional dictionary mapping column names to data types.
         """
         self.filename = filename
-        self.schema = schema
+        self.schema = list(schema.values())
+
+        self.schema_file = filename + ".schema"
+
+        if os.path.exists(self.schema_file):
+            self.schema = SchemaValidation(schema=None, filename=self.schema_file)
+        else:
+            self.schema = SchemaValidation(schema=self.schema, filename=self.schema_file)
 
         self.headers = ["time"] + list(schema.keys())
 
@@ -99,6 +107,7 @@ class StampDB:
         Returns:
             True if the point was successfully appended.
         """
+        self.schema.validate(point)
         return self._db.append_point(point.point)
 
     def update_point(self, point: Point) -> bool:
@@ -111,6 +120,7 @@ class StampDB:
         Returns:
             True if the point was successfully updated.
         """
+        self.schema.validate(point)
         return self._db.update_point(point.point)
 
     def compact(self) -> np.ndarray:
@@ -135,6 +145,8 @@ class StampDB:
 
     def close(self):
         """Close the database connection."""
+        if not os.path.exists(self.schema_file):
+            self.schema._save_schema_to_file()
         self._db.close()
 
     @property
