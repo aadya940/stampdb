@@ -1,5 +1,4 @@
-name: Build
-
+name: Build and Publish
 on:
   release:
     types: [created]
@@ -12,17 +11,13 @@ jobs:
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
         os: [windows-latest, ubuntu-latest, macos-13, macos-14]
-        python-version: [3.7, 3.8, 3.9, 3.10, 3.11, 3.12]
-
-
+        python-version: [3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13]
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-
       - name: Clear pip cache
         run: pip cache purge
-
       - name: Clean dist and cibuildwheel temp dirs
         shell: python
         run: |
@@ -54,10 +49,28 @@ jobs:
           package-dir: .
           output-dir: dist
           config-file: "./pyproject.toml"
-
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./dist/*.whl
           retention-days: 5
-          
+
+  publish:
+    needs: build_wheels
+    runs-on: ubuntu-latest
+    environment: release  
+    permissions:
+      id-token: write  
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          # Download all artifacts to a single directory
+          merge-multiple: true
+          path: dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # Using trusted publishing (recommended)
+          # No need to set password or username when using trusted publishing
+          verbose: true
