@@ -46,6 +46,8 @@ Supported Python versions:
 > 3.6 && < 3.13
 ```
 
+### Build from source
+
 Clone the repository.
 
 ```
