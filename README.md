@@ -155,3 +155,10 @@ assert loj.do().size > 0
 db.close()
 db2.close()
 ```
+
+### Contributing Guidelines
+
+- To get started on a pull request, fork the repository on GitHub, create a new branch, and make updates.
+- Write unit tests, ensure the code is 100% covered, update documentation where necessary, and format and style the code correctly.
+- Send a pull request.
+
