@@ -41,6 +41,11 @@ The Python API is in Development phase currently.
 - Private Data Storage
 
 ## Installation
+Supported Python versions:
+```
+> 3.6 && < 3.13
+```
+
 Clone the repository.
 
 ```
