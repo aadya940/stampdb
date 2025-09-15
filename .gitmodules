@@ -1,0 +1,3 @@
+[submodule "libs/csv2"]
+	path = libs/csv2
+	url = https://github.com/p-ranav/csv2
