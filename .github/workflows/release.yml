@@ -12,14 +12,44 @@ jobs:
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
         os: [windows-latest, ubuntu-latest, macos-13, macos-14]
+        python-version: [3.7, 3.8, 3.9, 3.10, 3.11, 3.12]
+
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
+      - name: Clear pip cache
+        run: pip cache purge
+
+      - name: Clean dist and cibuildwheel temp dirs
+        shell: python
+        run: |
+          import shutil
+          import os
+          import glob
+      
+          # Remove dist folder
+          if os.path.exists("dist"):
+              shutil.rmtree("dist")
+              print("Removed dist/")
+      
+          # Remove cibuildwheel temp dirs
+          # On macOS cibuildwheel uses /private/var/folders/.../cibw-run-*
+          for path in glob.glob("/private/var/folders/vk/*/cibw-run-*"):
+              try:
+                  shutil.rmtree(path)
+                  print(f"Removed {path}")
+              except Exception as e:
+                  print(f"Failed to remove {path}: {e}")
+  
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.2
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "10.15"
+          CIBW_SKIP: "cp36-*"
+          PIP_NO_CACHE_DIR: "1"
         with:
           package-dir: .
           output-dir: dist
