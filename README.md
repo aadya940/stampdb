@@ -43,7 +43,20 @@ The Python API is in Development phase currently.
 ## Installation
 Supported Python versions:
 ```
-> 3.6 && < 3.13
+> 3.6 && <= 3.13
+```
+
+| OS      | 3.7 | 3.8 | 3.9 | 3.10 | 3.11 | 3.12 | 3.13 | PyPy |
+|---------|-----|-----|-----|------|------|------|------|------|
+| Windows | ✅  | ✅  | ✅  | ✅   | ✅   | ✅   | ✅   | 🚫   |
+| Linux   | ✅  | ✅  | ✅  | ✅   | ✅   | ✅   | ✅   | 🚫   |
+| MacOS   | ✅  | ✅  | ✅  | ✅   | ✅   | ✅   | ✅   | 🚫   |
+
+
+### Using pip
+
+```
+pip install stampdb
 ```
 
 ### Build from source
