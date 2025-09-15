@@ -20,10 +20,20 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Clear pip cache
+        run: pip cache purge
+
+      - name: Clean dist and cibuildwheel temp dirs
+        run: |
+          rm -rf dist
+          rm -rf /private/var/folders/vk/*/cibw-run-*
+
+  
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.2
         env:
           CIBW_SKIP: "cp36-*"
+          PIP_NO_CACHE_DIR: "1"
         with:
           package-dir: .
           output-dir: dist
