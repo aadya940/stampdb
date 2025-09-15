@@ -1,6 +1,7 @@
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <Python.h>
+#include <cstring>
 
 #ifdef _MSC_VER
     #include <BaseTsd.h>
@@ -40,8 +41,8 @@ py::array convertToStructuredArray(const CSVData& csv) {
         } else if (std::holds_alternative<double>(variant)) {
             fields.emplace_back(headers[header_idx], py::dtype::of<double>());
         } else if (std::holds_alternative<std::string>(variant)) {
-            // Use object dtype for strings to avoid encoding issues
-            fields.emplace_back(headers[header_idx], py::dtype::of<py::object>());
+            // Use a reasonable fixed-size string - 256 characters should handle most cases
+            fields.emplace_back(headers[header_idx], py::dtype("U256"));
         } else if (std::holds_alternative<bool>(variant)) {
             fields.emplace_back(headers[header_idx], py::dtype::of<bool>());
         } else {
@@ -90,11 +91,19 @@ py::array convertToStructuredArray(const CSVData& csv) {
                 *reinterpret_cast<double*>(field_ptr) = std::get<double>(variant);
             } else if (std::holds_alternative<std::string>(variant)) {
                 const std::string& str = std::get<std::string>(variant);
-                // Create a Python string object and store its reference
-                py::str py_str(str);
-                PyObject* str_obj = py_str.release().ptr();
-                Py_INCREF(str_obj); // Increment reference count
-                *reinterpret_cast<PyObject**>(field_ptr) = str_obj;
+                size_t field_size = fields[col + 1].second.itemsize();
+                
+                // Zero the field
+                std::memset(field_ptr, 0, field_size);
+                
+                // Simple UTF-32 conversion for ASCII strings
+                char32_t* u32_ptr = reinterpret_cast<char32_t*>(field_ptr);
+                size_t max_chars = (str.length() < (field_size / sizeof(char32_t) - 1)) ? 
+                                   str.length() : (field_size / sizeof(char32_t) - 1);
+                
+                for (size_t i = 0; i < max_chars; ++i) {
+                    u32_ptr[i] = static_cast<char32_t>(static_cast<unsigned char>(str[i]));
+                }
             } else if (std::holds_alternative<bool>(variant)) {
                 *reinterpret_cast<bool*>(field_ptr) = std::get<bool>(variant);
             }
