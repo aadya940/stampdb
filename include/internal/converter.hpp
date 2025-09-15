@@ -57,13 +57,13 @@ py::array convertToStructuredArray(const CSVData& csv) {
     }
     
     py::dtype dtype = py::dtype::from_args(field_list);
-    std::vector<ssize_t> shape = {static_cast<ssize_t>(num_rows)};
+    std::vector<int> shape = {static_cast<int>(num_rows)};
     py::array result(dtype, shape);
     char* base_ptr = static_cast<char*>(result.mutable_data());
 
     // Calculate field offsets
-    std::vector<ssize_t> offsets;
-    ssize_t offset = 0;
+    std::vector<int> offsets;
+    int offset = 0;
     for (const auto& field : fields) {
         offsets.push_back(offset);
         offset += field.second.itemsize();
