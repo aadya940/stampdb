@@ -12,6 +12,8 @@ jobs:
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
         os: [windows-latest, ubuntu-latest, macos-13, macos-14]
+        python-version: [3.7, 3.8, 3.9, 3.10, 3.11, 3.12]
+
 
     steps:
       - uses: actions/checkout@v4
