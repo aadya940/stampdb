@@ -130,7 +130,7 @@ Though high performance is not the primary goal of `StampDB`, it performs signif
 
 ```bash
 python benchmarks.py
-
+```
 
 ## 6. Conclusion
 StampDB provides a minimal, easy-to-use solution for basic time series data storage in Python. Its simplicity makes it suitable for educational purposes and small-scale applications where a full-fledged database would be unnecessary. The implementation focuses on core functionality while maintaining a clean and maintainable codebase.
