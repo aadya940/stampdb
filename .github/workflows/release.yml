@@ -60,19 +60,27 @@ jobs:
   publish:
     needs: build_wheels
     runs-on: ubuntu-latest
-    environment: release  
+    environment: release
     permissions:
-      id-token: write  
+      id-token: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          # Download all artifacts to a single directory
           merge-multiple: true
-          path: dist
+          path: artifacts
+
+      - name: Extract wheels
+        run: |
+          mkdir dist
+          for f in artifacts/*.zip; do
+            unzip -j "$f" -d dist
+          done
+
+      - name: List wheels
+        run: ls -lh dist
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # Using trusted publishing (recommended)
-          # No need to set password or username when using trusted publishing
           verbose: true
