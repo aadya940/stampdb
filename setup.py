@@ -3,6 +3,12 @@ import pybind11
 import os
 import numpy as np
 
+if os.environ.get("READTHEDOCS") == "True":
+    extra_compile_args=['-std=c++2a'] 
+else:
+    extra_compile_args=["/std:c++20"] if os.name == "nt" else ["-std=c++20"]
+    
+
 extension = Extension(
     "stampdb._backend._types",
     sources=[
@@ -23,7 +29,7 @@ extension = Extension(
         np.get_include(),
     ],
     language="c++",
-    extra_compile_args=["/std:c++20"] if os.name == "nt" else ["-std=c++20"],
+    extra_compile_args=extra_compile_args,
 )
 
 
