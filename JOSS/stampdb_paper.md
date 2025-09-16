@@ -1,17 +1,30 @@
-# StampDB: A Simple Time Series Database for Python
+---
+title: 'StampDB: A C++ Time Series Database library designed for compatibility with the PyData Ecosystem.'
+tags:
+    - Time Series
+    - Database Systems
+    - Time Series Databases
+    - Python
+    - PyData
+    - NumPy
+authors:
+    - name: Aadya A. Chinubhai
+      affiliation: 1
+affiliations:
+    - name: Santa Clara University, Santa Clara, California, United States
+      index: 1
+bibliography: references.bib
+---
 
 ## Abstract
-StampDB is a lightweight time series database designed for compatibility with the PyData Ecosystem. It provides a simple, Python-native system that handles time series data without the complexity of full-fledged database systems. We try to be
-natively compatible with NumPy [@numpy] and pythons [@python] datetime [@python-datetime] module.
+
+StampDB is a lightweight time series database designed for seamless compatibility with the PyData ecosystem. The system provides a Python-native interface that handles time series data without the architectural complexity of enterprise-grade database systems. StampDB achieves native compatibility with NumPy [@numpy] and Python's [@python] datetime module [@python-datetime], offering researchers and developers a streamlined solution for time series data management in single-node environments.
 
 ## 1. Introduction
 
 ### 1.1 Background and Motivation
-Time Series is fundamental to many applications, from IoT to Scientific Research. However, most of the databases are
-heavy-weight and are focused on solving enterprise-level problems. Also, some of them not being natively compatible
-with NumPy [@numpy] miss out on most of the other libraries that natively support NumPy. This is important science
-most of the data analysis work is being done in Python [@python] using libraries like Scikit-learn [@scikit-learn],
-Numpy [@numpy], Pandas [@pandas], etc. All of this is done while having a C++ [@cpp] backend which provides low-level control.
+
+Time series data processing represents a fundamental requirement across numerous application domains, spanning Internet of Things (IoT) deployments to scientific research initiatives. However, existing database solutions predominantly target enterprise-level architectures, introducing unnecessary complexity for smaller-scale applications. Furthermore, many established systems lack native NumPy [@numpy] compatibility, thereby limiting integration with the broader Python [@python] scientific computing ecosystem. This limitation proves particularly significant given that contemporary data analysis workflows predominantly utilize Python-based libraries including Scikit-learn [@scikit-learn], NumPy [@numpy], and Pandas[ @pandas]. The proposed StampDB addresses these limitations through a C++ backend implementation that provides low-level control while maintaining a Python-centric interface design.
 
 ### 1.2 Project Goals
 StampDB was designed to:

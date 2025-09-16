@@ -74,6 +74,14 @@ Build the Python API.
 python -m build
 ```
 
+### Running tests
+
+After going to the `tests/` folder, run:
+
+```
+python -m pytest -s
+```
+
 ## Quick Start
 
 I/O using StampDB.
