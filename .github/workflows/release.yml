@@ -67,19 +67,24 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          merge-multiple: true
+          pattern: cibw-wheels-*
           path: artifacts
-
-      - name: Extract wheels
+          merge-multiple: true
+      
+      - name: List downloaded artifacts
         run: |
-          mkdir dist
-          for f in artifacts/*.zip; do
-            unzip -j "$f" -d dist
-          done
-
+          echo "Contents of artifacts directory:"
+          find artifacts -type f -name "*.whl" | head -10
+          echo "Total wheel files: $(find artifacts -name "*.whl" | wc -l)"
+      
+      - name: Prepare distribution directory
+        run: |
+          mkdir -p dist
+          find artifacts -name "*.whl" -exec cp {} dist/ \;
+      
       - name: List wheels
-        run: ls -lh dist
-
+        run: ls -lh dist/
+      
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
