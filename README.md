@@ -177,6 +177,28 @@ db.close()
 db2.close()
 ```
 
+## Runtime Comparison.
+
+Though high performance is not the primary goal of `StampDB`, it performs significantly better than native Python libraries like tinyflux.
+
+#### Runtime Comparison with tinyflux
+
+| Operation | Speedup |
+|-----------|---------|
+| Writes    | 1.5×    |
+| Queries   | 100×    |
+| Reads     | 30×     |
+
+### Steps to Reproduce
+
+1. Install `tinyflux` and `StampDB`.
+2. Navigate to the directory containing `benchmarks.py`.
+3. Run the benchmark:
+
+```bash
+python benchmarks.py
+```
+
 ### Contributing Guidelines
 
 - To get started on a pull request, fork the repository on GitHub, create a new branch, and make updates.
