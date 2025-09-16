@@ -35,13 +35,32 @@ def read_requirements():
         return []
 
 
+def read_long_description():
+    try:
+        with open("README.md", "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        return "A tiny C++ Time Series Database library designed for compatibility with the PyData Ecosystem."
+
+
 setup(
     name="stampdb",
     version="0.1.0",
     description="A tiny C++ Time Series Database library designed for compatibility with the PyData Ecosystem.",
+    long_description=read_long_description(),
+    long_description_content_type="text/markdown",
     author="Aadya A. Chinubhai",
+    author_email="aadyachinubhai@gmail.com",
+    url="https://github.com/aadya940/stampdb",
     ext_modules=[extension],
     packages=find_packages(),
     install_requires=read_requirements(),
     zip_safe=False,
+    python_requires=">=3.7",
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: C++",
+    ],
 )
