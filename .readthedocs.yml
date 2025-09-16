@@ -7,18 +7,12 @@ build:
 
   apt_packages:
     - g++-11
-    - gcc-11
 
   environment:
-    CC: gcc
-    CXX: g++
+    CXX: g++-11
 
   jobs:
     pre_build:
-      - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100
-      - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100
-      - gcc --version
-      - g++ --version
       - python -m pip install -r requirements.txt
       - python -m pip install -r requirements_doc.txt
       - python -m pip install pypandoc_binary
