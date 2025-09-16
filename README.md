@@ -51,6 +51,8 @@ Supported Python versions:
 | MacOS   | ✅  | ✅  | ✅  | ✅   | ✅   | ✅   | ✅   | 🚫   |
 
 
+i686 ISA not supported.
+
 ### Using pip
 
 ```
