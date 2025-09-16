@@ -41,6 +41,26 @@ The Python API is in Development phase currently.
 - Private Data Storage
 
 ## Installation
+Supported Python versions:
+```
+> 3.6 && <= 3.13
+```
+
+| OS      | 3.7 | 3.8 | 3.9 | 3.10 | 3.11 | 3.12 | 3.13 | PyPy |
+|---------|-----|-----|-----|------|------|------|------|------|
+| Windows | ✅  | ✅  | ✅  | ✅   | ✅   | ✅   | ✅   | 🚫   |
+| Linux   | ✅  | ✅  | ✅  | ✅   | ✅   | ✅   | ✅   | 🚫   |
+| MacOS   | ✅  | ✅  | ✅  | ✅   | ✅   | ✅   | ✅   | 🚫   |
+
+
+### Using pip
+
+```
+pip install stampdb
+```
+
+### Build from source
+
 Clone the repository.
 
 ```
@@ -148,3 +168,10 @@ assert loj.do().size > 0
 db.close()
 db2.close()
 ```
+
+### Contributing Guidelines
+
+- To get started on a pull request, fork the repository on GitHub, create a new branch, and make updates.
+- Write unit tests, ensure the code is 100% covered, update documentation where necessary, and format and style the code correctly.
+- Send a pull request.
+
