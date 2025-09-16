@@ -31,8 +31,6 @@ It is designed to work natively with NumPy and Pythons datetime module.
 - ACID guarantees
 - High performance as the size of your dataset grows
 
-The Python API is in Development phase currently.
-
 ### Use Cases
 
 - IOT and Sensor Data
