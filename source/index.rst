@@ -12,9 +12,10 @@ documentation for details.
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 5
    :caption: Contents:
 
    stampdb.rst
    point.rst
+   relational.rst
    
