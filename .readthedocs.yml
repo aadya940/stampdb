@@ -6,8 +6,7 @@ build:
     python: "3.10"
   jobs:
     pre_build:
-      - git submodule update --init --recursive
-      - ls -R libs/csv2
+      - git clone https://github.com/p-ranav/csv2.git libs/csv2
       - python -m pip install -r requirements.txt
       - python -m pip install -r requirements_doc.txt
       - python -m pip install pypandoc_binary
@@ -27,4 +26,5 @@ sphinx:
   fail_on_warning: false
 
 submodules:
+  depth: false
   recursive: true
