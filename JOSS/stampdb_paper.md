@@ -1,4 +1,20 @@
-# StampDB: A Simple Time Series Database for Python
+---
+title: 'StampDB: A C++ Time Series Database library designed for compatibility with the PyData Ecosystem.'
+tags:
+    - Time Series
+    - Database Systems
+    - Time Series Databases
+    - Python
+    - PyData
+    - NumPy
+authors:
+    - name: Aadya A. Chinubhai
+      affiliation: 1
+affiliations:
+    - name: Santa Clara University, Santa Clara, California, United States
+      index: 1
+bibliography: references.bib
+---
 
 ## Abstract
 StampDB is a lightweight time series database designed for compatibility with the PyData Ecosystem. It provides a simple, Python-native system that handles time series data without the complexity of full-fledged database systems. We try to be
