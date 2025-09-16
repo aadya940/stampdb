@@ -110,7 +110,29 @@ class OuterJoin(left: np.ndarray, right: np.ndarray, left_key: str, right_key: s
 class LeftOuterJoin(left: np.ndarray, right: np.ndarray, left_key: str, right_key: str) — Left outer join; do() -> np.ndarray.
 ```
 
-## 5. Conclusion
+## 5. Runtime Comparison.
+
+Though high performance is not the primary goal of `StampDB`, it performs significantly better than native Python libraries like tinyflux [@tinyflux].
+
+#### Runtime Comparison with tinyflux [@tinyflux]
+
+| Operation | Speedup |
+|-----------|---------|
+| Writes    | 1.5×    |
+| Queries   | 100×    |
+| Reads     | 30×     |
+
+### Steps to Reproduce
+
+1. Install `tinyflux` and `StampDB`.
+2. Navigate to the directory containing `benchmarks.py`.
+3. Run the benchmark:
+
+```bash
+python benchmarks.py
+
+
+## 6. Conclusion
 StampDB provides a minimal, easy-to-use solution for basic time series data storage in Python. Its simplicity makes it suitable for educational purposes and small-scale applications where a full-fledged database would be unnecessary. The implementation focuses on core functionality while maintaining a clean and maintainable codebase.
 
 
