@@ -38,12 +38,16 @@ jobs:
                   print(f"Removed {path}")
               except Exception as e:
                   print(f"Failed to remove {path}: {e}")
-  
+
+      - name: Clean build artifacts
+        run: rm -rf dist build *.egg-info
+          
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.2
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.15"
-          CIBW_SKIP: "cp36-* pp*"
+          CIBW_ARCHS_LINUX: auto aarch64 armv7l
+          CIBW_SKIP: "cp36-* pp* *-manylinux_i686 *-musllinux_i686 "
           PIP_NO_CACHE_DIR: "1"
           CIBW_TEST_COMMAND: "python -c \"import stampdb; print('Import successful')\""
         with:
