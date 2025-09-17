@@ -39,9 +39,23 @@ jobs:
               except Exception as e:
                   print(f"Failed to remove {path}: {e}")
 
-      - name: Clean build artifacts
-        run: rm -rf dist build *.egg-info
-          
+      - name: Clean build artifacts 
+        shell: python
+        run: |
+          import shutil
+          import os
+          import glob
+      
+          paths_to_remove = ["dist", "build"] + glob.glob("*.egg-info")
+      
+          for path in paths_to_remove:
+              if os.path.exists(path):
+                  try:
+                      shutil.rmtree(path)
+                      print(f"Removed {path}")
+                  except Exception as e:
+                      print(f"Failed to remove {path}: {e}")
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.2
         env:
