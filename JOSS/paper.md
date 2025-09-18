@@ -1,5 +1,5 @@
 ---
-title: 'StampDB: A C++ Time Series Database library designed for compatibility with the PyData Ecosystem.'
+title: 'StampDB: A tiny C++ Time Series Database library designed for compatibility with the PyData Ecosystem.'
 tags:
     - Time Series
     - Database Systems
