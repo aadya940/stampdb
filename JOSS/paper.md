@@ -13,7 +13,7 @@ authors:
 affiliations:
     - name: Santa Clara University, Santa Clara, California, United States
       index: 1
-bibliography: references.bib
+bibliography: paper.bib
 ---
 
 ## Abstract
@@ -22,7 +22,7 @@ StampDB is a lightweight time series database designed for seamless compatibilit
 
 ## 1. Introduction
 
-### 1.1 Background and Motivation
+### 1.1 Statement of Need
 
 Time series data processing represents a fundamental requirement across numerous application domains, spanning Internet of Things (IoT) deployments to scientific research initiatives. However, existing database solutions predominantly target enterprise-level architectures, introducing unnecessary complexity for smaller-scale applications. Furthermore, many established systems lack native NumPy [@numpy] compatibility, thereby limiting integration with the broader Python [@python] scientific computing ecosystem. This limitation proves particularly significant given that contemporary data analysis workflows predominantly utilize Python-based libraries including Scikit-learn [@scikit-learn], NumPy [@numpy], and Pandas[ @pandas]. The proposed StampDB addresses these limitations through a C++ backend implementation that provides low-level control while maintaining a Python-centric interface design.
 
