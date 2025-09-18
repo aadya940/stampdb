@@ -1,4 +1,4 @@
-name: Build 3.13
+name: Build and Publish
 on:
   release:
     types: [created]
@@ -57,6 +57,7 @@ jobs:
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.15"
           CIBW_BUILD: "cp313-*"  # This specifies Python 3.13
+          CIBW_PRERELEASE_PYTHONS: "true"  # Enable Python 3.13 support
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_SKIP: "pp* *-manylinux_i686 *-musllinux_i686"
           PIP_NO_CACHE_DIR: "1"
