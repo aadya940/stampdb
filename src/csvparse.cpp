@@ -180,6 +180,7 @@ void writeCSV(const std::string& filename, const CSVData& csv) {
     }
 
     writer.write_rows(rows);
+    file.flush();
     file.close();
 }
 
