@@ -2,11 +2,19 @@ name: Build and Publish
 on:
   release:
     types: [created]
+  workflow_dispatch:
+    inputs:
+      publish_only:
+        description: 'Only run publish job (skip building)'
+        required: false
+        default: false
+        type: boolean
     
 jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    if: ${{ !inputs.publish_only }}
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-13, macos-14]
@@ -90,7 +98,7 @@ jobs:
     environment: release
     permissions:
       id-token: write
-    if: always()
+    if: always() && (needs.build_wheels.result == 'success' || needs.build_wheels.result == 'skipped' || inputs.publish_only)
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -131,4 +139,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
-          
