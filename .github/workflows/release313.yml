@@ -1,4 +1,4 @@
-name: Build and Publish
+name: Build 3.13
 on:
   release:
     types: [created]
