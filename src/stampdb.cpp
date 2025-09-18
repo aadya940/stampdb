@@ -78,6 +78,7 @@ bool StampDB::checkpoint() {
     }
     
     bool success = writeToCSV(newPoints, file, this->newAdded);
+    file.flush();
     file.close();
 
     if (!success) {
