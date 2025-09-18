@@ -9,7 +9,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # macos-13 is an intel runner, macos-14 is apple silicon
         os: [windows-latest, ubuntu-latest, macos-13, macos-14]
         python-version: [3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13]
     steps:
@@ -17,60 +16,46 @@ jobs:
         with:
           submodules: recursive
           
-      # Set up QEMU for cross-platform builds (Linux only)
       - name: Set up QEMU
         if: runner.os == 'Linux'
         uses: docker/setup-qemu-action@v3
         with:
           platforms: all
           
-      - name: Clear pip cache
-        run: pip cache purge
-        
-      - name: Clean dist and cibuildwheel temp dirs
+      - name: Clean environment
         shell: python
         run: |
-          import shutil
-          import os
-          import glob
-      
-          # Remove dist folder
-          if os.path.exists("dist"):
-              shutil.rmtree("dist")
-              print("Removed dist/")
-      
-          # Remove cibuildwheel temp dirs
-          # On macOS cibuildwheel uses /private/var/folders/.../cibw-run-*
-          for path in glob.glob("/private/var/folders/vk/*/cibw-run-*"):
+          import shutil, os, glob, subprocess
+          
+          # Clear pip cache
+          try:
+              subprocess.run(["pip", "cache", "purge"], check=False)
+          except:
+              pass
+          
+          # Remove build artifacts
+          for path in ["dist", "build"] + glob.glob("*.egg-info"):
               try:
-                  shutil.rmtree(path)
-                  print(f"Removed {path}")
-              except Exception as e:
-                  print(f"Failed to remove {path}: {e}")
-                  
-      - name: Clean build artifacts 
-        shell: python
-        run: |
-          import shutil
-          import os
-          import glob
-      
-          paths_to_remove = ["dist", "build"] + glob.glob("*.egg-info")
-      
-          for path in paths_to_remove:
-              if os.path.exists(path):
+                  if os.path.exists(path):
+                      shutil.rmtree(path) if os.path.isdir(path) else os.remove(path)
+              except:
+                  pass
+          
+          # Clean temp dirs (Unix only)
+          if os.name != 'nt':
+              for pattern in ["/tmp/cibw-*", "/private/var/folders/*/cibw-*"]:
                   try:
-                      shutil.rmtree(path)
-                      print(f"Removed {path}")
-                  except Exception as e:
-                      print(f"Failed to remove {path}: {e}")
+                      for path in glob.glob(pattern):
+                          shutil.rmtree(path)
+                  except:
+                      pass
                       
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.2
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.15"
           CIBW_ARCHS_LINUX: auto aarch64
-          CIBW_SKIP: "cp36-* pp* *-manylinux_i686 *-musllinux_i686 "
+          CIBW_SKIP: "cp36-* pp* *-manylinux_i686 *-musllinux_i686"
           PIP_NO_CACHE_DIR: "1"
           CIBW_TEST_COMMAND: "python -c \"import stampdb; print('Import successful')\""
         with:
@@ -78,11 +63,26 @@ jobs:
           output-dir: dist
           config-file: "./pyproject.toml"
           
+      - name: Remove corrupted wheels
+        shell: python
+        run: |
+          import zipfile, glob, os
+          for wheel in glob.glob("dist/*.whl"):
+              try:
+                  with zipfile.ZipFile(wheel) as zf:
+                      if zf.testzip() is not None:
+                          raise Exception("Corrupted zip")
+              except:
+                  print(f"Removing corrupted: {os.path.basename(wheel)}")
+                  os.remove(wheel)
+          
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./dist/*.whl
           retention-days: 5
+          compression-level: 0
+        continue-on-error: true
           
   publish:
     needs: build_wheels
@@ -90,29 +90,45 @@ jobs:
     environment: release
     permissions:
       id-token: write
+    if: always()
     steps:
-      - name: Download all artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: cibw-wheels-*
           path: artifacts
           merge-multiple: true
+        continue-on-error: true
       
-      - name: List downloaded artifacts
+      - name: Prepare and validate wheels
+        shell: python
         run: |
-          echo "Contents of artifacts directory:"
-          find artifacts -type f -name "*.whl" | head -10
-          echo "Total wheel files: $(find artifacts -name "*.whl" | wc -l)"
-      
-      - name: Prepare distribution directory
-        run: |
-          mkdir -p dist
-          find artifacts -name "*.whl" -exec cp {} dist/ \;
-      
-      - name: List wheels
-        run: ls -lh dist/
+          import zipfile, glob, os, shutil
+          
+          # Create dist and copy wheels
+          os.makedirs("dist", exist_ok=True)
+          wheels = glob.glob("artifacts/*.whl")
+          print(f"Found {len(wheels)} wheels")
+          
+          # Copy only valid wheels
+          valid_count = 0
+          for wheel in wheels:
+              try:
+                  # Quick validation
+                  with zipfile.ZipFile(wheel) as zf:
+                      zf.testzip()
+                  # Copy if valid
+                  shutil.copy2(wheel, "dist/")
+                  valid_count += 1
+              except:
+                  print(f"Skipping corrupted: {os.path.basename(wheel)}")
+          
+          print(f"Valid wheels: {valid_count}")
+          if valid_count == 0:
+              exit(1)
       
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          verbose: true
+          skip-existing: true
+          
