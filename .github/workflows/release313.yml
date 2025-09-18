@@ -1,5 +1,4 @@
-name: Build and Publish
-
+name: Build 3.13
 on:
   release:
     types: [created]
@@ -9,7 +8,6 @@ on:
         description: "Skip build and only publish"
         required: false
         default: "false"
-
 jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
@@ -18,7 +16,6 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-13, macos-14]
-        python-version: [3.13]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,8 +56,9 @@ jobs:
         uses: pypa/cibuildwheel@v2.19.2
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.15"
+          CIBW_BUILD: "cp313-*"  # This specifies Python 3.13
           CIBW_ARCHS_LINUX: auto aarch64
-          CIBW_SKIP: "cp36-* pp* *-manylinux_i686 *-musllinux_i686"
+          CIBW_SKIP: "pp* *-manylinux_i686 *-musllinux_i686"
           PIP_NO_CACHE_DIR: "1"
           CIBW_TEST_COMMAND: "python -c \"import stampdb; print('Import successful')\""
         with:
