@@ -118,8 +118,8 @@ Though high performance is not the primary goal of `StampDB`, it performs signif
 
 | Operation | Speedup |
 |-----------|---------|
-| Writes    | 1.5×    |
-| Queries   | 100×    |
+| Writes    | 2×    |
+| Queries   | 50×    |
 | Reads     | 30×     |
 
 ### Steps to Reproduce

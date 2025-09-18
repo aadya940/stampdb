@@ -16,8 +16,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          
+      # Set up QEMU for cross-platform builds (Linux only)
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+          
       - name: Clear pip cache
         run: pip cache purge
+        
       - name: Clean dist and cibuildwheel temp dirs
         shell: python
         run: |
@@ -38,7 +47,7 @@ jobs:
                   print(f"Removed {path}")
               except Exception as e:
                   print(f"Failed to remove {path}: {e}")
-
+                  
       - name: Clean build artifacts 
         shell: python
         run: |
@@ -55,7 +64,7 @@ jobs:
                       print(f"Removed {path}")
                   except Exception as e:
                       print(f"Failed to remove {path}: {e}")
-
+                      
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.2
         env:
@@ -74,7 +83,7 @@ jobs:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./dist/*.whl
           retention-days: 5
-
+          
   publish:
     needs: build_wheels
     runs-on: ubuntu-latest
