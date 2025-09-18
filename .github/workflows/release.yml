@@ -93,19 +93,30 @@ jobs:
         continue-on-error: true
           
   publish:
-    needs: build_wheels
+    needs: [build_wheels]
     runs-on: ubuntu-latest
     environment: release
     permissions:
       id-token: write
     if: always() && (needs.build_wheels.result == 'success' || needs.build_wheels.result == 'skipped' || inputs.publish_only)
     steps:
-      - name: Download artifacts
+      - name: Download current run artifacts
+        if: ${{ !inputs.publish_only }}
         uses: actions/download-artifact@v4
         with:
           pattern: cibw-wheels-*
           path: artifacts
           merge-multiple: true
+        continue-on-error: true
+        
+      - name: Get artifacts from previous runs
+        if: inputs.publish_only
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: release.yml
+          name: cibw-wheels-*
+          path: artifacts
+          search_artifacts: true
         continue-on-error: true
       
       - name: Prepare and validate wheels
@@ -115,7 +126,7 @@ jobs:
           
           # Create dist and copy wheels
           os.makedirs("dist", exist_ok=True)
-          wheels = glob.glob("artifacts/*.whl")
+          wheels = glob.glob("artifacts/**/*.whl", recursive=True)
           print(f"Found {len(wheels)} wheels")
           
           # Copy only valid wheels
@@ -128,11 +139,14 @@ jobs:
                   # Copy if valid
                   shutil.copy2(wheel, "dist/")
                   valid_count += 1
+                  print(f"Valid: {os.path.basename(wheel)}")
               except:
                   print(f"Skipping corrupted: {os.path.basename(wheel)}")
           
           print(f"Valid wheels: {valid_count}")
           if valid_count == 0:
+              print("ERROR: No valid wheels found!")
+              print("For publish-only mode, make sure you have artifacts from a previous successful build.")
               exit(1)
       
       - name: Publish to PyPI
