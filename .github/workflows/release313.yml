@@ -1,0 +1,86 @@
+name: Build and Publish
+on:
+  release:
+    types: [created]
+    
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    if: ${{ !inputs.publish_only }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-13, macos-14]
+        python-version: [3.13]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+          
+      - name: Clean environment
+        shell: python
+        run: |
+          import shutil, os, glob, subprocess
+          
+          # Clear pip cache
+          try:
+              subprocess.run(["pip", "cache", "purge"], check=False)
+          except:
+              pass
+          
+          # Remove build artifacts
+          for path in ["dist", "build"] + glob.glob("*.egg-info"):
+              try:
+                  if os.path.exists(path):
+                      shutil.rmtree(path) if os.path.isdir(path) else os.remove(path)
+              except:
+                  pass
+          
+          # Clean temp dirs (Unix only)
+          if os.name != 'nt':
+              for pattern in ["/tmp/cibw-*", "/private/var/folders/*/cibw-*"]:
+                  try:
+                      for path in glob.glob(pattern):
+                          shutil.rmtree(path)
+                  except:
+                      pass
+                      
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.19.2
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "10.15"
+          CIBW_ARCHS_LINUX: auto aarch64
+          CIBW_SKIP: "cp36-* pp* *-manylinux_i686 *-musllinux_i686"
+          PIP_NO_CACHE_DIR: "1"
+          CIBW_TEST_COMMAND: "python -c \"import stampdb; print('Import successful')\""
+        with:
+          package-dir: .
+          output-dir: dist
+          config-file: "./pyproject.toml"
+          
+      - name: Remove corrupted wheels
+        shell: python
+        run: |
+          import zipfile, glob, os
+          for wheel in glob.glob("dist/*.whl"):
+              try:
+                  with zipfile.ZipFile(wheel) as zf:
+                      if zf.testzip() is not None:
+                          raise Exception("Corrupted zip")
+              except:
+                  print(f"Removing corrupted: {os.path.basename(wheel)}")
+                  os.remove(wheel)
+          
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./dist/*.whl
+          retention-days: 5
+          compression-level: 0
+        continue-on-error: true
